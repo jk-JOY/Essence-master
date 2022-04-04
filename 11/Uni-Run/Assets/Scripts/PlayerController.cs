@@ -48,22 +48,41 @@ public class PlayerController : MonoBehaviour
     }
 
     private void Die()
-    {
-        // 사망 처리
+    {//애니매이터의 값과, 소리를 변경해주고
+        animator.SetTrigger("Die");
+        playerAudio.clip = deathClip;
+        playerAudio.Play();
+
+        //속력값을 제로로 만든뒤 Bool 값을 isdead로 변경. 
+        playerRigidbody.velocity = Vector2.zero;
+        isDead = true;
+        
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if(other.tag == "Dead" && !isDead)
+        {//Die함수를 따로 작성한뒤 Ontrigger에서 함수만 실행
+            //충돌한 상대방의 태그가 Dead이며 아직 사망하지 않았다면 Die()함수실행
+            Die();
+        }
         // 트리거 콜라이더를 가진 장애물과의 충돌을 감지
+
     }
 
+    // 바닥에 닿았음을 감지하는 처리
     private void OnCollisionEnter2D(Collision2D collision)
-    {
-        // 바닥에 닿았음을 감지하는 처리
+    {//어떤 콜라이더와 닿았으며, 충돌 표면이 위쪽을 바라보고 있다면
+        if (collision.contacts[0].normal.y > 0.7f)
+        {//isGrounded 를 true로 변경하고 누적 점프횟수를 0으로 리셋 ㅡ 
+            isGrounded = true;
+            jumpCount = 0;
+        }
     }
 
+    // 바닥에서 벗어났음을 감지하는 처리
     private void OnCollisionExit2D(Collision2D collision)
     {
-        // 바닥에서 벗어났음을 감지하는 처리
-    }
+        isGrounded = false;
+    }   
 }
