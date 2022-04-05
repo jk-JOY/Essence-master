@@ -56,7 +56,9 @@ public class PlayerController : MonoBehaviour
         //속력값을 제로로 만든뒤 Bool 값을 isdead로 변경. 
         playerRigidbody.velocity = Vector2.zero;
         isDead = true;
-        
+
+        //싱글턴인 게임매니저에 접근해서 UI를 켜는 OnPlayerDead함수 실행
+        GameManager.instance.OnPlayerDead();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
