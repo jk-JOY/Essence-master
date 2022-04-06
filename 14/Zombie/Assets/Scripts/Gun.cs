@@ -133,9 +133,15 @@ public class Gun : MonoBehaviour
 
     // 재장전 시도
     public bool Reload()
-    {
+    {//state가 리로드 거나,  남은 탄알이 없거나, 탄창에 총알이 가득이라면 
+        if(state == State.Reloading || ammoRemain <= 0 || magAmmo >= magCapacity)
+        { //재장전 못함
+            return false;
+        }
 
-        return false;
+        //나머지 조건에서는 재장전 처리가능
+        StartCoroutine(ReloadRoutine());
+        return true;
     }
 
     // 실제 재장전 처리를 진행
@@ -143,9 +149,23 @@ public class Gun : MonoBehaviour
     {
         // 현재 상태를 재장전 중 상태로 전환
         state = State.Reloading;
+        gunAudioPlayer.PlayOneShot(reloadClip);
 
         // 재장전 소요 시간 만큼 처리를 쉬기
         yield return new WaitForSeconds(reloadTime);
+        //탄창에 채울 탄알을 계산
+        int ammoToFill = magCapacity - magAmmo;
+
+        //탄창에 채워야할 총알이 남은 총알보다 많다면 , 채워야 할 탄알 수를 남은 탄알 수에 맞게 줄니다.
+        if(ammoRemain < ammoToFill)
+        {
+            ammoToFill = ammoRemain;
+        }
+
+        //탄창을 채움
+        magAmmo += ammoToFill;
+        //남은 탄알에서 탄창에 채운만큼 탄알을 뺌.
+        ammoRemain -= ammoToFill;
 
         // 총의 현재 상태를 발사 준비된 상태로 변경
         state = State.Ready;
