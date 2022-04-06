@@ -39,11 +39,28 @@ public class Enemy : LivingEntity {
 
     private void Awake() {
         // 초기화
+
+        pathFinder = GetComponent<NavMeshAgent>();
+        enemyAnimator = GetComponent<Animator>();
+        enemyAudioPlayer = GetComponent<AudioSource>();
+
+        //렌더러 컴포넌트는 자식 게임 오브젝트에 있으므로 겟컴칠드런 사용
+        enemyRenderer = GetComponentInChildren<Renderer>();
     }
 
     // 적 AI의 초기 스펙을 결정하는 셋업 메서드
     public void Setup(float newHealth, float newDamage, float newSpeed, Color skinColor) {
-        
+        //체력 설정
+        startingHealth = newHealth;
+        health = newHealth;
+
+        //공격력설정
+        damage = newDamage;
+        //내비메시 에이전트의 이동 속도 설정
+        pathFinder.speed = newSpeed;
+
+        //렌더러가 사용중인 머터리얼의 컬러를 변경, 외형 색이 변함
+        enemyRenderer.material.color = skinColor;
     }
 
     private void Start() {
@@ -61,6 +78,34 @@ public class Enemy : LivingEntity {
         // 살아있는 동안 무한 루프
         while (!dead)
         {
+            if(hasTarget)
+            {//추적대상 존재 : 경로를 갱신하고 AI이동을 계속 진행
+                pathFinder.isStopped = false;
+                pathFinder.SetDestination(targetEntity.transform.position);
+            }
+            else
+            {
+                //추적 대상 없음 : AI 이동 중지
+                pathFinder.isStopped = true;
+
+                //20유닛의 반지름을 가진 가상의 구를 그렸을대 구와 겹치는 모든 콜라이더를 가져옴
+                //단, WhatisTarget 레이어를 가진 콜라이더만 가져오도록 필터링
+                Collider[] colliders = Physics.OverlapSphere(transform.position, 20f, whatIsTarget);
+
+                for (int i = 0; i < colliders.Length; i++)
+                {//콜라이더로부터 LivingEntity 컴포넌트 가져오기
+                    LivingEntity livingEntity = colliders[i].GetComponent<LivingEntity>();
+                    //livingentitiy컴포넌트가 존재하며, 해당 livingentitiy컴포넌트가 살아있다면
+                    if (livingEntity != null && !livingEntity.dead)
+                    {
+                        //추적대상을 해당 Livingentity로 설정
+                        targetEntity = livingEntity;
+
+                        //for문 루프 방지
+                        break;
+                    }
+                }
+            }
             // 0.25초 주기로 처리 반복
             yield return new WaitForSeconds(0.25f);
         }
