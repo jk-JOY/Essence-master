@@ -18,24 +18,28 @@ public class UIManager : MonoBehaviour {
         }
     }
 
-    private static UIManager m_instance; // 싱글톤이 할당될 변수
+    private static UIManager m_instance; // 싱글톤이 할당될 정적변수
 
     public Text ammoText; // 탄약 표시용 텍스트
     public Text scoreText; // 점수 표시용 텍스트
     public Text waveText; // 적 웨이브 표시용 텍스트
     public GameObject gameoverUI; // 게임 오버시 활성화할 UI 
 
-    // 탄약 텍스트 갱신
+    // 탄약 표시 UI 갱신
+    //탄창의 탄알 magAmmo , 남은 탄알 remainAmmo를 입력받아 표시
     public void UpdateAmmoText(int magAmmo, int remainAmmo) {
         ammoText.text = magAmmo + "/" + remainAmmo;
     }
 
     // 점수 텍스트 갱신
+    //표시할 점수를 newScore을 입력받는다.
     public void UpdateScoreText(int newScore) {
         scoreText.text = "Score : " + newScore;
     }
 
     // 적 웨이브 텍스트 갱신
+    //표시할 wave의 숫자를 waves로 받고 적의 숫자를 count로 받는다.
+
     public void UpdateWaveText(int waves, int count) {
         waveText.text = "Wave : " + waves + "\nEnemy Left : " + count;
     }

@@ -16,7 +16,8 @@ public class EnemySpawner : MonoBehaviour {
     public float speedMax = 3f; // 최대 속도
     public float speedMin = 1f; // 최소 속도
 
-    public Color strongEnemyColor = Color.red; // 강한 적 AI가 가지게 될 피부색
+    //BossAI
+    public Color strongEnemyColor = Color.white; // 강한 적 AI가 가지게 될 피부색
 
     private List<Enemy> enemies = new List<Enemy>(); // 생성된 적들을 담는 리스트
     private int wave; // 현재 웨이브
@@ -46,9 +47,44 @@ public class EnemySpawner : MonoBehaviour {
 
     // 현재 웨이브에 맞춰 적을 생성
     private void SpawnWave() {
+        wave++;
+
+        int spawnCount = Mathf.RoundToInt(wave * 1.5f);
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            float enemyIntensity = Random.Range(0f, 1f);
+
+            CreateEnemy(enemyIntensity);
+        }
     }
 
     // 적을 생성하고 생성한 적에게 추적할 대상을 할당
     private void CreateEnemy(float intensity) {
+
+        float health = Mathf.Lerp(healthMin, healthMax, intensity);
+        float damage = Mathf.Lerp(damageMin, damageMax, intensity);
+        float speed = Mathf.Lerp(speedMin, speedMax, intensity);
+
+        //몬스터의 색깔을 intensity를 기반으로  검정색과 하얀색 사이에서 피부색 결정
+        Color skinColor = Color.Lerp(Color.green, strongEnemyColor, intensity);
+        //생성할 위치를 랜덤으로 결정.
+        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+        //적 생성
+        Enemy enemy = Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
+        
+        //생성한 적의 능력치와 추적 대상 설정, 생성한 적을 리스트에 추가
+        enemy.Setup(health, damage, speed, skinColor);
+        enemies.Add(enemy);
+
+        //적의 onDeath이벤트에서 익명 메서드 등록
+        //사망한 적을 리스트에서 제거
+        enemy.onDeath += () => enemies.Remove(enemy);
+        enemy.onDeath += () => Destroy(enemy.gameObject,10f);
+        enemy.onDeath += () => GameManager.instance.AddScore(100);
+    
+    
+    
     }
+
 }

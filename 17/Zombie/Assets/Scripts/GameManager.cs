@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour {
                 // 씬에서 GameManager 오브젝트를 찾아 할당
                 m_instance = FindObjectOfType<GameManager>();
             }
-
             // 싱글톤 오브젝트를 반환
             return m_instance;
         }
