@@ -113,7 +113,17 @@ public class Enemy : LivingEntity {
 
     // 데미지를 입었을때 실행할 처리
     public override void OnDamage(float damage, Vector3 hitPoint, Vector3 hitNormal) {
-        // LivingEntity의 OnDamage()를 실행하여 데미지 적용
+        
+        if(!dead)
+        {
+            hitEffect.transform.position = hitPoint;
+            hitEffect.transform.rotation = Quaternion.LookRotation(hitNormal);
+            hitEffect.Play();
+
+            enemyAudioPlayer.PlayOneShot(hitSound);
+        }
+        
+        // LivingEntity (부모)클래스의 OnDamage()를 실행하여 데미지 적용
         base.OnDamage(damage, hitPoint, hitNormal);
     }
 
@@ -121,9 +131,41 @@ public class Enemy : LivingEntity {
     public override void Die() {
         // LivingEntity의 Die()를 실행하여 기본 사망 처리 실행
         base.Die();
+        
+        //다른 AI를 방해하지 않도록 자신의 모든 콜라이더를 비활성화
+        Collider[] enemyColliders = GetComponents<Collider>();
+        for (int i = 0; i < enemyColliders.Length; i++)
+        {
+            enemyColliders[i].enabled = false;
+        }
+
+        pathFinder.isStopped = true;
+        pathFinder.enabled = false;
+        enemyAnimator.SetTrigger("Die");
+        enemyAudioPlayer.PlayOneShot(deathSound);
     }
 
+    // 트리거 충돌한 상대방 게임 오브젝트가 추적 대상이라면 공격 실행하는 함수   
     private void OnTriggerStay(Collider other) {
-        // 트리거 충돌한 상대방 게임 오브젝트가 추적 대상이라면 공격 실행   
+        //자신이 죽지 않았고 최근 공격시점에서 timeBetAttack시간 이상 지났다면 공격 가능
+        if (!dead && Time.time >= lastAttackTime + timeBetAttack)
+        {
+            //상대방의 livingEntiti타입 가져오기 시도
+            LivingEntity attackTarget = other.GetComponent<LivingEntity>();
+
+            //tkdeoqkddml livingentiti가 자신의 추적대상이람녀 공격 실행
+            if (attackTarget != null && attackTarget == targetEntity)
+            {
+                //공격시간 갱신
+                lastAttackTime = Time.time;
+
+                //상대방의 피격위치와 피격방향을 근삿값으로 계산
+                Vector3 hitPoint = other.ClosestPoint(transform.position);
+                Vector3 hitNormal = transform.position - other.transform.position;
+
+                //공격실행
+                attackTarget.OnDamage(damage, hitPoint, hitNormal);
+            }
+        }
     }
 }
